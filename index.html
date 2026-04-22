@@ -2,13 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Хомяк-Кликер — Мега-апгрейды и сокращения (1k, 1M, 1B)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+    <title>Хомяк-Кликер — Максимальная адаптация</title>
     <style>
         * {
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -19,37 +20,38 @@
             align-items: center;
             font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 12px;
+            touch-action: manipulation;
         }
 
-        /* Игровая карточка */
+        /* Игровая карточка — адаптивный размер */
         .game-container {
-            background: rgba(255, 215, 150, 0.92);
-            border-radius: 80px 80px 60px 60px;
-            box-shadow: 0 30px 30px rgba(0, 0, 0, 0.3), inset 0 1px 4px rgba(255, 255, 200, 0.8);
-            padding: 20px 25px 35px;
+            background: rgba(255, 215, 150, 0.94);
+            border-radius: clamp(40px, 12vw, 80px) clamp(40px, 12vw, 80px) clamp(30px, 8vw, 60px) clamp(30px, 8vw, 60px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3), inset 0 1px 4px rgba(255, 255, 200, 0.8);
+            padding: clamp(15px, 5vw, 25px) clamp(15px, 6vw, 30px) clamp(20px, 6vw, 35px);
             text-align: center;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             transition: all 0.2s ease;
         }
 
-        /* Шапка со счётом и рекордом */
+        /* Шапка со счётом и рекордом — гибкая */
         .stats {
             background: #fdf8e7;
             border-radius: 100px;
-            padding: 10px 20px;
-            margin-bottom: 20px;
+            padding: 8px 16px;
+            margin-bottom: clamp(15px, 4vw, 25px);
             display: flex;
             justify-content: space-between;
-            gap: 15px;
+            gap: clamp(10px, 3vw, 20px);
             box-shadow: inset 0 1px 4px rgba(0,0,0,0.05), 0 8px 12px rgba(0,0,0,0.1);
         }
 
         .score-box, .best-box {
             background: #4a2e1e;
             border-radius: 60px;
-            padding: 8px 18px;
+            padding: 6px 12px;
             flex: 1;
             color: #ffefb9;
             text-shadow: 0 2px 0 #2f1c0f;
@@ -58,33 +60,34 @@
 
         .score-box span, .best-box span {
             display: block;
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 3vw, 0.9rem);
             letter-spacing: 1px;
             font-weight: 500;
         }
 
         .score-value, .best-value {
-            font-size: 2.2rem;
+            font-size: clamp(1.4rem, 7vw, 2.5rem);
             font-weight: 800;
             line-height: 1.2;
-            margin-top: 5px;
+            margin-top: 4px;
             color: #ffd966;
             word-break: break-word;
         }
 
-        /* Хомяк - главная цель */
+        /* Хомяк — адаптивный размер + улучшенный тач */
         .hamster-area {
             margin: 15px 0 20px;
             cursor: pointer;
             position: relative;
             display: flex;
             justify-content: center;
+            touch-action: manipulation;
         }
 
         .hamster {
             background: radial-gradient(circle at 35% 35%, #d9a13b, #b46f2a);
-            width: 220px;
-            height: 220px;
+            width: clamp(150px, 45vw, 250px);
+            height: clamp(150px, 45vw, 250px);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -92,6 +95,7 @@
             box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3), inset 0 -8px 0 #6d3f16, inset 0 2px 10px rgba(255, 235, 170, 0.8);
             transition: transform 0.08s linear, box-shadow 0.1s ease;
             will-change: transform;
+            touch-action: manipulation;
         }
 
         .hamster:active {
@@ -100,35 +104,37 @@
         }
 
         .hamster-face {
-            font-size: 110px;
+            font-size: clamp(70px, 22vw, 130px);
             filter: drop-shadow(2px 6px 6px rgba(0,0,0,0.3));
             transition: all 0.05s ease;
+            pointer-events: none;
         }
 
-        /* Бонусные кнопки и апгрейд */
+        /* Блок улучшений — адаптивные кнопки */
         .upgrades {
             background: #f7e5c2;
-            border-radius: 50px;
-            padding: 15px 15px;
-            margin: 20px 0 10px;
+            border-radius: clamp(30px, 8vw, 50px);
+            padding: clamp(12px, 4vw, 18px);
+            margin: 15px 0 10px;
             box-shadow: inset 0 1px 3px #fff2df, 0 8px 12px rgba(0, 0, 0, 0.15);
         }
 
         .upgrade-title {
             font-weight: bold;
             color: #5a3a22;
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .upgrade-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
         }
 
@@ -136,9 +142,9 @@
             background: #f5bc70;
             border: none;
             border-radius: 60px;
-            padding: 10px 16px;
+            padding: 8px 14px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: clamp(0.75rem, 3.5vw, 0.95rem);
             color: #2f2016;
             cursor: pointer;
             transition: 0.1s linear;
@@ -146,7 +152,18 @@
             font-family: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            touch-action: manipulation;
+            white-space: nowrap;
+        }
+        
+        /* Для очень узких экранов переносим текст */
+        @media (max-width: 480px) {
+            .upgrade-btn {
+                white-space: normal;
+                word-break: keep-all;
+                padding: 6px 12px;
+            }
         }
 
         .upgrade-btn:active {
@@ -173,16 +190,17 @@
             color: #fef7cf;
         }
 
-        /* всплывающие +N очков */
+        /* всплывающие очки — адаптивный размер */
         .floating-number {
             position: fixed;
             pointer-events: none;
             font-weight: 800;
-            font-size: 1.8rem;
+            font-size: clamp(1.2rem, 6vw, 2.2rem);
             color: #ffec5e;
             text-shadow: 0 2px 5px #b45f1b;
             z-index: 1000;
             animation: floatUp 0.7s ease-out forwards;
+            white-space: nowrap;
         }
 
         @keyframes floatUp {
@@ -212,7 +230,7 @@
         }
 
         footer {
-            font-size: 0.7rem;
+            font-size: clamp(0.6rem, 2.5vw, 0.75rem);
             color: #4d351b;
             margin-top: 15px;
             opacity: 0.7;
@@ -221,28 +239,49 @@
         .save-badge {
             background: #4f3a28;
             display: inline-block;
-            font-size: 0.7rem;
-            padding: 2px 10px;
+            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            padding: 3px 12px;
             border-radius: 40px;
             color: #ffeaac;
-            margin-top: 8px;
+            margin-top: 10px;
+            letter-spacing: 0.3px;
         }
-
-        @media (max-width: 480px) {
+        
+        /* Дополнительная адаптация для планшетов */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .game-container {
+                max-width: 550px;
+            }
             .hamster {
-                width: 170px;
-                height: 170px;
+                width: 220px;
+                height: 220px;
             }
-            .hamster-face {
-                font-size: 85px;
-            }
-            .score-value, .best-value {
-                font-size: 1.6rem;
+        }
+        
+        /* Для очень маленьких экранов (типа iPhone SE) */
+        @media (max-width: 380px) {
+            .upgrade-buttons {
+                gap: 8px;
             }
             .upgrade-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
+                padding: 5px 10px;
+                font-size: 0.7rem;
             }
+            .stats {
+                padding: 6px 12px;
+            }
+        }
+        
+        /* Убираем стандартные стили touch-выделений */
+        button, div[class*="btn"], .hamster {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        /* Индикатор активного касания для хомяка */
+        .hamster.touch-active {
+            transform: scale(0.94);
+            transition: transform 0.02s;
         }
     </style>
 </head>
@@ -277,40 +316,38 @@
                 💪 Сила клика <span id="powerLevel">0</span> 🔨 (<span id="powerCost">30</span>)
             </button>
             <button class="upgrade-btn max-btn" id="maxAutoBtn">
-                ⚡ Купить MAX авто
+                ⚡ MAX авто
             </button>
             <button class="upgrade-btn max-btn" id="maxPowerBtn">
-                💥 Купить MAX силу
+                💥 MAX силу
             </button>
             <button class="upgrade-btn reset-btn" id="resetGameBtn">
                 🔄 Сброс
             </button>
         </div>
-        <div style="font-size: 0.75rem; margin-top: 12px; color:#61482e;">
+        <div style="font-size: clamp(0.7rem, 3vw, 0.8rem); margin-top: 12px; color:#61482e;">
             💡 Тапай на хомяка → +<span id="clickPowerDisplay">1</span> очко
         </div>
-        <div class="save-badge">💾 Автосохранение | Формат: 1k, 1M, 1B, 1T, 1qa, 1qi...</div>
+        <div class="save-badge">💾 Автосохранение | 1k, 1M, 1B, 1T, 1qa...</div>
     </div>
-    <footer>🐹 Покупай на ВСЕ ДЕНЬГИ кнопками MAX!</footer>
+    <footer>🐹 Адаптивный кликер — работает на любом устройстве</footer>
 </div>
 
 <script>
     (function(){
         // ---------- Ключи для localStorage ----------
         const STORAGE_KEYS = {
-            SCORE: 'hamsterScore',
-            AUTO_LEVEL: 'hamsterAutoLevel',
-            POWER_LEVEL: 'hamsterPowerLevel',
-            BEST_SCORE: 'hamsterBestScore'
+            SCORE: 'hamsterScoreAdapt',
+            AUTO_LEVEL: 'hamsterAutoLevelAdapt',
+            POWER_LEVEL: 'hamsterPowerLevelAdapt',
+            BEST_SCORE: 'hamsterBestScoreAdapt'
         };
         
         // ---------- Игровые данные ----------
-        let score = 0;                  // текущие очки (число с плавающей, но целое)
-        let bestScore = 0;             // рекорд
-        let autoClickerLevel = 0;      // уровень автокликера
-        let powerUpLevel = 0;          // уровень улучшения силы клика
-        
-        // Интервал для авто-кликера
+        let score = 0;
+        let bestScore = 0;
+        let autoClickerLevel = 0;
+        let powerUpLevel = 0;
         let autoInterval = null;
         
         // DOM элементы
@@ -328,57 +365,50 @@
         const powerCostSpan = document.getElementById('powerCost');
         const clickPowerDisplay = document.getElementById('clickPowerDisplay');
         
-        // ---------- Функция форматирования больших чисел (1k, 1M, 1B, 1T, 1qa, 1qi, 1sx и т.д.) ----------
+        // ---------- Форматирование чисел (k, M, B, T, qa, qi, sx, sp, oc, no, dc) ----------
         function formatNumber(num) {
             if (num === undefined || num === null) return "0";
-            // Округляем вниз, так как очки целые
             let n = Math.floor(num);
             if (n < 1000) return n.toString();
             
             const suffixes = [
-                { value: 1e3, symbol: "k" },      // thousand
-                { value: 1e6, symbol: "M" },      // million
-                { value: 1e9, symbol: "B" },      // billion
-                { value: 1e12, symbol: "T" },     // trillion
-                { value: 1e15, symbol: "qa" },    // quadrillion
-                { value: 1e18, symbol: "qi" },    // quintillion
-                { value: 1e21, symbol: "sx" },    // sextillion
-                { value: 1e24, symbol: "sp" },    // septillion
-                { value: 1e27, symbol: "oc" },    // octillion
-                { value: 1e30, symbol: "no" },    // nonillion
-                { value: 1e33, symbol: "dc" }     // decillion
+                { value: 1e3, symbol: "k" },
+                { value: 1e6, symbol: "M" },
+                { value: 1e9, symbol: "B" },
+                { value: 1e12, symbol: "T" },
+                { value: 1e15, symbol: "qa" },
+                { value: 1e18, symbol: "qi" },
+                { value: 1e21, symbol: "sx" },
+                { value: 1e24, symbol: "sp" },
+                { value: 1e27, symbol: "oc" },
+                { value: 1e30, symbol: "no" },
+                { value: 1e33, symbol: "dc" }
             ];
             
             for (let i = suffixes.length - 1; i >= 0; i--) {
                 if (n >= suffixes[i].value) {
                     let val = n / suffixes[i].value;
-                    // Оставляем 2 знака после запятой, если нужно
-                    let formatted = val.toFixed(2);
-                    // Убираем .00 если они есть
-                    formatted = formatted.replace(/\.00$/, '');
+                    let formatted = val.toFixed(2).replace(/\.00$/, '');
                     return formatted + suffixes[i].symbol;
                 }
             }
             return n.toString();
         }
         
-        // Обновление отображения с форматом
         function updateDisplay() {
             scoreDisplay.innerText = formatNumber(score);
             bestDisplay.innerText = formatNumber(bestScore);
         }
         
-        // Пересчёт цены для авто-кликера (база 50 + уровень*18, макс цена 20k чтобы не улететь в космос)
+        // Цены (с ограничением, чтобы игра не ломалась)
         function getAutoCost() {
-            return Math.min(20000, 50 + autoClickerLevel * 18);
+            return Math.min(25000, 50 + autoClickerLevel * 18);
         }
         
-        // Цена силы клика (база 30 + уровень*12, макс 15000)
         function getPowerCost() {
-            return Math.min(15000, 30 + powerUpLevel * 12);
+            return Math.min(18000, 30 + powerUpLevel * 12);
         }
         
-        // Обновить цены и состояния кнопок
         function updateUI() {
             const autoCost = getAutoCost();
             const powerCost = getPowerCost();
@@ -391,7 +421,6 @@
             const totalClickPower = 1 + powerUpLevel;
             clickPowerDisplay.innerText = totalClickPower;
             
-            // Блокировка обычных кнопок если не хватает
             if (score < autoCost) {
                 autoClickerBtn.classList.add('disabled');
             } else {
@@ -412,7 +441,6 @@
             updateDisplay();
         }
         
-        // Сохраняем всё в localStorage
         function saveGame() {
             localStorage.setItem(STORAGE_KEYS.SCORE, Math.floor(score));
             localStorage.setItem(STORAGE_KEYS.AUTO_LEVEL, autoClickerLevel);
@@ -420,7 +448,6 @@
             localStorage.setItem(STORAGE_KEYS.BEST_SCORE, Math.floor(bestScore));
         }
         
-        // Загрузка из localStorage
         function loadGame() {
             const savedScore = localStorage.getItem(STORAGE_KEYS.SCORE);
             if (savedScore !== null && !isNaN(parseInt(savedScore))) score = parseInt(savedScore);
@@ -438,14 +465,12 @@
             if (savedBest !== null && !isNaN(parseInt(savedBest))) bestScore = parseInt(savedBest);
             else bestScore = 0;
             
-            // Валидация
             if (score < 0) score = 0;
             if (autoClickerLevel < 0) autoClickerLevel = 0;
             if (powerUpLevel < 0) powerUpLevel = 0;
             if (bestScore < 0) bestScore = 0;
         }
         
-        // Перезапуск интервала авто-кликера
         function restartAutoClicker() {
             if (autoInterval) {
                 clearInterval(autoInterval);
@@ -464,7 +489,6 @@
             }
         }
         
-        // Добавление очков (с анимацией и сохранением)
         function addScore(amount, fromClick = false, isAuto = false) {
             if (amount <= 0) return;
             score += amount;
@@ -480,7 +504,6 @@
             }
         }
         
-        // Парящие числа
         function showFloatingText(text, originElement, colorHint = '#ffec5e') {
             if (!originElement) return;
             const rect = originElement.getBoundingClientRect();
@@ -493,12 +516,11 @@
             div.style.top = y - 20 + 'px';
             div.style.color = colorHint;
             div.style.fontWeight = 'bold';
-            div.style.fontSize = '1.8rem';
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 700);
         }
         
-        // Эффект клика по хомяку
+        // Улучшенный эффект для тач-устройств
         function addHamsterClickEffect() {
             const hamsterDiv = document.querySelector('.hamster');
             if (hamsterDiv) {
@@ -511,15 +533,31 @@
                 faceSpan.innerText = '🐹💥';
                 setTimeout(() => faceSpan.innerText = original, 150);
             }
+            // Легкая вибрация для мобильных (если поддерживается)
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(20);
+            }
         }
         
-        function onHamsterClick() {
+        function onHamsterClick(e) {
+            e.preventDefault();
             const clickValue = 1 + powerUpLevel;
             addScore(clickValue, true, false);
             addHamsterClickEffect();
         }
         
-        // Покупка 1 уровня авто
+        // Обработка тач-событий для предотвращения зума и двойного клика
+        function attachTouchEvents() {
+            hamsterZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                onHamsterClick(e);
+            }, { passive: false });
+            hamsterZone.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                onHamsterClick(e);
+            });
+        }
+        
         function buyAuto() {
             const cost = getAutoCost();
             if (score >= cost) {
@@ -529,12 +567,12 @@
                 updateUI();
                 saveGame();
                 showFloatingText(`🚀 Авто lvl ${autoClickerLevel}`, autoClickerBtn, '#ffbc6e');
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10);
             } else {
                 showFloatingText(`🧀 Нужно ${formatNumber(cost)}`, autoClickerBtn, '#ffaa88');
             }
         }
         
-        // Покупка 1 уровня силы
         function buyPower() {
             const cost = getPowerCost();
             if (score >= cost) {
@@ -543,19 +581,20 @@
                 updateUI();
                 saveGame();
                 showFloatingText(`💪 Сила +1 (теперь +${1+powerUpLevel})`, powerUpBtn, '#ffb347');
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10);
             } else {
                 showFloatingText(`🧀 Нужно ${formatNumber(cost)}`, powerUpBtn, '#ffaa88');
             }
         }
         
-        // --- ПОКУПКА НА ВСЕ ДЕНЬГИ (MAX) ---
+        // MAX покупки с защитой от зависания
         function buyMaxAuto() {
             if (score <= 0) {
                 showFloatingText(`Нет очков для авто`, maxAutoBtn, '#ffaa88');
                 return;
             }
             let boughtCount = 0;
-            let maxLoops = 500; // защита от бесконечного цикла
+            let maxLoops = 800;
             while (maxLoops-- > 0) {
                 let currentCost = getAutoCost();
                 if (score >= currentCost) {
@@ -571,8 +610,9 @@
                 updateUI();
                 saveGame();
                 showFloatingText(`⚡ Куплено авто x${boughtCount}! Уровень ${autoClickerLevel}`, maxAutoBtn, '#e5ff9e');
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
             } else {
-                showFloatingText(`Не хватает даже на 1 авто (нужно ${formatNumber(getAutoCost())})`, maxAutoBtn, '#ffaa88');
+                showFloatingText(`Не хватает на 1 авто (${formatNumber(getAutoCost())})`, maxAutoBtn, '#ffaa88');
             }
         }
         
@@ -582,7 +622,7 @@
                 return;
             }
             let boughtCount = 0;
-            let maxLoops = 500;
+            let maxLoops = 800;
             while (maxLoops-- > 0) {
                 let currentCost = getPowerCost();
                 if (score >= currentCost) {
@@ -597,14 +637,14 @@
                 updateUI();
                 saveGame();
                 showFloatingText(`💥 Сила клика +${boughtCount} (теперь +${1+powerUpLevel})`, maxPowerBtn, '#ffd966');
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
             } else {
-                showFloatingText(`Не хватает на 1 силу (нужно ${formatNumber(getPowerCost())})`, maxPowerBtn, '#ffaa88');
+                showFloatingText(`Не хватает на 1 силу (${formatNumber(getPowerCost())})`, maxPowerBtn, '#ffaa88');
             }
         }
         
-        // Сброс игры (рекорд остаётся)
         function resetGame() {
-            if (confirm('Сбросить прогресс? Очки, авто-кликер и сила клика обнулятся. Рекорд останется.')) {
+            if (confirm('Сбросить прогресс? Очки, улучшения обнулятся. Рекорд останется.')) {
                 if (autoInterval) {
                     clearInterval(autoInterval);
                     autoInterval = null;
@@ -612,22 +652,29 @@
                 score = 0;
                 autoClickerLevel = 0;
                 powerUpLevel = 0;
-                restartAutoClicker(); // уровень 0 -> нет интервала
+                restartAutoClicker();
                 updateUI();
                 saveGame();
                 showFloatingText(`🌀 Игра сброшена`, resetGameBtn, '#ffbf8f');
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(30);
             }
         }
         
-        // Сохранение перед выходом
         function handleBeforeUnload() {
             saveGame();
         }
         
-        // Инициализация
+        // Адаптивная коррекция для безопасной области (iOS)
+        function setSafeArea() {
+            const container = document.querySelector('.game-container');
+            if (container && window.visualViewport) {
+                const safeTop = window.visualViewport.offsetTop;
+                if (safeTop > 0) container.style.marginTop = `${safeTop}px`;
+            }
+        }
+        
         function init() {
             loadGame();
-            // Синхронизируем bestScore на случай если текущий score > bestScore
             if (score > bestScore) {
                 bestScore = score;
                 localStorage.setItem(STORAGE_KEYS.BEST_SCORE, bestScore);
@@ -635,36 +682,25 @@
             updateUI();
             restartAutoClicker();
             
-            // События
-            hamsterZone.addEventListener('click', (e) => {
-                e.stopPropagation();
-                onHamsterClick();
-            });
-            autoClickerBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                buyAuto();
-            });
-            powerUpBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                buyPower();
-            });
-            maxAutoBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                buyMaxAuto();
-            });
-            maxPowerBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                buyMaxPower();
-            });
-            resetGameBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                resetGame();
-            });
+            // Используем улучшенные события для тач и мыши
+            attachTouchEvents();
+            
+            // Обычные клики для кнопок
+            autoClickerBtn.addEventListener('click', (e) => { e.stopPropagation(); buyAuto(); });
+            powerUpBtn.addEventListener('click', (e) => { e.stopPropagation(); buyPower(); });
+            maxAutoBtn.addEventListener('click', (e) => { e.stopPropagation(); buyMaxAuto(); });
+            maxPowerBtn.addEventListener('click', (e) => { e.stopPropagation(); buyMaxPower(); });
+            resetGameBtn.addEventListener('click', (e) => { e.stopPropagation(); resetGame(); });
             
             window.addEventListener('beforeunload', handleBeforeUnload);
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) saveGame();
-            });
+            document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
+            
+            // Адаптация для безопасной зоны
+            window.addEventListener('resize', setSafeArea);
+            setSafeArea();
+            
+            // Отключаем контекстное меню на хомяке
+            hamsterZone.addEventListener('contextmenu', (e) => e.preventDefault());
         }
         
         init();
