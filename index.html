@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Хомяк-Кликер | Тапай на хомяка!</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #2e5f3e 0%, #1e3a2a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Игровая карточка */
+        .game-container {
+            background: rgba(255, 215, 150, 0.9);
+            border-radius: 80px 80px 60px 60px;
+            box-shadow: 0 30px 30px rgba(0, 0, 0, 0.3), inset 0 1px 4px rgba(255, 255, 200, 0.8);
+            padding: 20px 25px 35px;
+            text-align: center;
+            max-width: 550px;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        /* Шапка со счётом и рекордом */
+        .stats {
+            background: #fdf8e7;
+            border-radius: 100px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.05), 0 8px 12px rgba(0,0,0,0.1);
+        }
+
+        .score-box, .best-box {
+            background: #4a2e1e;
+            border-radius: 60px;
+            padding: 8px 18px;
+            flex: 1;
+            color: #ffefb9;
+            text-shadow: 0 2px 0 #2f1c0f;
+            box-shadow: inset 0 1px 2px #b97f4b, 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .score-box span, .best-box span {
+            display: block;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .score-value, .best-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-top: 5px;
+            color: #ffd966;
+        }
+
+        /* Хомяк - главная цель */
+        .hamster-area {
+            margin: 15px 0 20px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hamster {
+            background: radial-gradient(circle at 35% 35%, #d9a13b, #b46f2a);
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3), inset 0 -8px 0 #6d3f16, inset 0 2px 10px rgba(255, 235, 170, 0.8);
+            transition: transform 0.08s linear, box-shadow 0.1s ease;
+            will-change: transform;
+        }
+
+        /* Анимация нажатия */
+        .hamster:active {
+            transform: scale(0.94);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3), inset 0 -4px 0 #5a3412;
+        }
+
+        /* мордочка хомяка (SVG-эмодзи + стили) */
+        .hamster-face {
+            font-size: 110px;
+            filter: drop-shadow(2px 6px 6px rgba(0,0,0,0.3));
+            transition: all 0.05s ease;
+        }
+
+        /* Бонусные кнопки и апгрейд */
+        .upgrades {
+            background: #f7e5c2;
+            border-radius: 50px;
+            padding: 15px 15px;
+            margin: 20px 0 10px;
+            box-shadow: inset 0 1px 3px #fff2df, 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .upgrade-title {
+            font-weight: bold;
+            color: #5a3a22;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upgrade-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .upgrade-btn {
+            background: #f5bc70;
+            border: none;
+            border-radius: 60px;
+            padding: 10px 16px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #2f2016;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 5px 0 #8b5a2b;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upgrade-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #8b5a2b;
+        }
+
+        .upgrade-btn.disabled {
+            opacity: 0.5;
+            transform: none;
+            pointer-events: none;
+            filter: grayscale(0.1);
+        }
+
+        .reset-btn {
+            background: #aa7a4a;
+            box-shadow: 0 5px 0 #5e3a1f;
+            color: #fff0cf;
+        }
+
+        /* всплывающие +1 очки */
+        .floating-number {
+            position: fixed;
+            pointer-events: none;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: #ffec5e;
+            text-shadow: 0 2px 5px #b45f1b;
+            z-index: 1000;
+            animation: floatUp 0.7s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0px) scale(0.8);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateY(-70px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-120px) scale(1.3);
+            }
+        }
+
+        /* анимация вибрации при клике (лёгкая) */
+        @keyframes tinyShake {
+            0% { transform: translate(0,0);}
+            25% { transform: translate(1px, -1px);}
+            50% { transform: translate(-1px, 1px);}
+            100% { transform: translate(0,0);}
+        }
+
+        .click-effect {
+            animation: tinyShake 0.08s ease-in-out;
+        }
+
+        footer {
+            font-size: 0.7rem;
+            color: #4d351b;
+            margin-top: 15px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 480px) {
+            .hamster {
+                width: 180px;
+                height: 180px;
+            }
+            .hamster-face {
+                font-size: 90px;
+            }
+            .score-value, .best-value {
+                font-size: 2rem;
+            }
+            .upgrade-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="stats">
+        <div class="score-box">
+            <span>🍀 ОЧКИ</span>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="best-box">
+            <span>🏆 РЕКОРД</span>
+            <div class="best-value" id="bestDisplay">0</div>
+        </div>
+    </div>
+
+    <div class="hamster-area">
+        <div class="hamster" id="hamsterClickZone">
+            <div class="hamster-face" id="hamsterFace">🐹</div>
+        </div>
+    </div>
+
+    <div class="upgrades">
+        <div class="upgrade-title">
+            ✨ УЛУЧШЕНИЯ ✨
+        </div>
+        <div class="upgrade-buttons">
+            <button class="upgrade-btn" id="autoClickerBtn">
+                🤖 Авто-кликер <span id="autoLevel">0</span> ⚡ (<span id="autoCost">50</span>)
+            </button>
+            <button class="upgrade-btn" id="powerUpBtn">
+                💪 Сила клика <span id="powerLevel">0</span> 🔨 (<span id="powerCost">30</span>)
+            </button>
+            <button class="upgrade-btn reset-btn" id="resetGameBtn">
+                🔄 Сброс
+            </button>
+        </div>
+        <div style="font-size: 0.75rem; margin-top: 12px; color:#61482e;">
+            💡 Тапай на хомяка → +<span id="clickPowerDisplay">1</span> очко
+        </div>
+    </div>
+    <footer>🐹 Чем больше кликаешь, тем быстрее прогресс!</footer>
+</div>
+
+<script>
+    (function(){
+        // ---------- Игровые данные ----------
+        let score = 0;                  // текущие очки
+        let bestScore = 0;             // рекорд
+        let clickPower = 1;            // сила одного клика
+        let autoClickerLevel = 0;      // уровень автокликера (кол-во срабатываний в секунду)
+        let powerUpLevel = 0;          // уровень улучшения силы клика (базовый счёт + доп.бонус)
+        
+        // Цены на улучшения (базовые)
+        let baseAutoCost = 50;
+        let basePowerCost = 30;
+        
+        // Текущие цены (пересчитываются от уровня)
+        let currentAutoCost = baseAutoCost;
+        let currentPowerCost = basePowerCost;
+        
+        // Интервал для авто-кликера
+        let autoInterval = null;
+        
+        // DOM элементы
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const bestDisplay = document.getElementById('bestDisplay');
+        const hamsterZone = document.getElementById('hamsterClickZone');
+        const autoClickerBtn = document.getElementById('autoClickerBtn');
+        const powerUpBtn = document.getElementById('powerUpBtn');
+        const resetGameBtn = document.getElementById('resetGameBtn');
+        const autoLevelSpan = document.getElementById('autoLevel');
+        const autoCostSpan = document.getElementById('autoCost');
+        const powerLevelSpan = document.getElementById('powerLevel');
+        const powerCostSpan = document.getElementById('powerCost');
+        const clickPowerDisplay = document.getElementById('clickPowerDisplay');
+        
+        // вспомогательная функция обновления UI (счёт, цены, кнопки)
+        function updateUI() {
+            // отображаем счёт
+            scoreDisplay.innerText = Math.floor(score);
+            // рекорд
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('hamsterBestScore', bestScore);
+                bestDisplay.innerText = Math.floor(bestScore);
+            } else {
+                bestDisplay.innerText = Math.floor(bestScore);
+            }
+            
+            // сила клика (базовый 1 + бонус от уровня силы)
+            let totalClickPower = 1 + powerUpLevel;
+            clickPowerDisplay.innerText = totalClickPower;
+            
+            // авто-кликер уровень + цена (растёт линейно: цена = база + уровень*15, но не выше 300, чтобы игра не уходила в бесконечность)
+            let autoCostCalculated = Math.min(300, baseAutoCost + autoClickerLevel * 18);
+            currentAutoCost = autoCostCalculated;
+            autoCostSpan.innerText = currentAutoCost;
+            autoLevelSpan.innerText = autoClickerLevel;
+            
+            // сила клика цена: база + уровень*12, не выше 250
+            let powerCostCalculated = Math.min(250, basePowerCost + powerUpLevel * 12);
+            currentPowerCost = powerCostCalculated;
+            powerCostSpan.innerText = currentPowerCost;
+            powerLevelSpan.innerText = powerUpLevel;
+            
+            // управление состоянием кнопок (если недостаточно очков - disabled стиль)
+            if (score < currentAutoCost) {
+                autoClickerBtn.classList.add('disabled');
+            } else {
+                autoClickerBtn.classList.remove('disabled');
+            }
+            
+            if (score < currentPowerCost) {
+                powerUpBtn.classList.add('disabled');
+            } else {
+                powerUpBtn.classList.remove('disabled');
+            }
+        }
+        
+        // перезапуск интервала авто-кликера (при изменении уровня)
+        function restartAutoClicker() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            if (autoClickerLevel > 0) {
+                // интервал = 1 секунда, за каждую секунду начисляем очки = autoClickerLevel (каждый уровень даёт 1 доп очко в сек)
+                autoInterval = setInterval(() => {
+                    if (autoClickerLevel > 0) {
+                        let autoGain = autoClickerLevel;   // каждый уровень авто-кликера даёт +1 очко в секунду
+                        addScore(autoGain, false);  // авто-начисление, без анимации от хомяка? но добавим лёгкий эффект? сделаем с фантомным "авто"
+                        showFloatingText(`🤖 +${autoGain}`, hamsterZone, '#b3ffa7');
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Функция добавления очков (withAnim - откуда вызов: от клика или нет)
+        // fromClick - чтобы показывать анимацию "+сила" от хомяка
+        function addScore(amount, fromClick = true, sourceElement = null) {
+            let prevScore = score;
+            score += amount;
+            if (score < 0) score = 0; // страховка
+            updateUI();
+            
+            // если от клика, показываем парящую цифру в месте клика
+            if (fromClick && amount > 0 && sourceElement) {
+                showFloatingText(`+${amount}`, sourceElement, '#ffd966');
+            } else if (!fromClick && amount > 0) {
+                // для авто-кликера показываем в районе хомяка небольшое оповещение
+                if (hamsterZone) showFloatingText(`⚙️ +${amount}`, hamsterZone, '#c7f0b2');
+            }
+        }
+        
+        // Эффект парящих чисел
+        function showFloatingText(text, originElement, colorHint = '#ffec5e') {
+            if (!originElement) return;
+            const rect = originElement.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const div = document.createElement('div');
+            div.className = 'floating-number';
+            div.innerText = text;
+            div.style.left = x - 25 + 'px';
+            div.style.top = y - 20 + 'px';
+            div.style.color = colorHint;
+            div.style.fontWeight = 'bold';
+            div.style.fontSize = '1.8rem';
+            document.body.appendChild(div);
+            setTimeout(() => {
+                div.remove();
+            }, 700);
+        }
+        
+        // эффект встряски для хомяка при клике
+        function addHamsterClickEffect() {
+            const hamsterDiv = document.querySelector('.hamster');
+            if (hamsterDiv) {
+                hamsterDiv.classList.add('click-effect');
+                setTimeout(() => {
+                    hamsterDiv.classList.remove('click-effect');
+                }, 100);
+            }
+            // быстро меняем эмодзи на довольного / удивлённого на 150 мс
+            const faceSpan = document.getElementById('hamsterFace');
+            if (faceSpan) {
+                const original = faceSpan.innerText;
+                faceSpan.innerText = '🐹💥';
+                setTimeout(() => {
+                    faceSpan.innerText = original;
+                }, 150);
+            }
+        }
+        
+        // Обработчик клика по хомяку
+        function onHamsterClick(event) {
+            // общая сила клика = 1 + powerUpLevel
+            const clickValue = 1 + powerUpLevel;
+            addScore(clickValue, true, hamsterZone);
+            addHamsterClickEffect();
+            // дополнительная "пульсация" на точке клика
+            if (event && event.clientX) {
+                // можно не делать, но круто
+            }
+        }
+        
+        // покупка авто-кликера (увеличить уровень)
+        function buyAutoClicker() {
+            if (score >= currentAutoCost) {
+                score -= currentAutoCost;
+                autoClickerLevel++;
+                // после изменения уровня перезапускаем интервал
+                restartAutoClicker();
+                updateUI();
+                // анимация покупки
+                showFloatingText(`🚀 Авто-кликер lvl ${autoClickerLevel}`, autoClickerBtn, '#ffbc6e');
+            } else {
+                showFloatingText(`🧀 Не хватает очков!`, autoClickerBtn, '#ffaa88');
+            }
+        }
+        
+        // покупка силы клика
+        function buyPowerUp() {
+            if (score >= currentPowerCost) {
+                score -= currentPowerCost;
+                powerUpLevel++;
+                updateUI();
+                showFloatingText(`💢 Сила клика +1!`, powerUpBtn, '#ffb347');
+            } else {
+                showFloatingText(`🧀 Нужно больше очков`, powerUpBtn, '#ffaa88');
+            }
+        }
+        
+        // полный сброс игры (сохраняя лучший рекорд? сброс всего прогресса кроме рекорда по желанию)
+        // но по логике: сбросить счёт, уровни, пересоздать игру
+        function resetGame() {
+            if (confirm('Сбросить весь прогресс? Ваши очки и улучшения обнулятся, но рекорд останется.')) {
+                score = 0;
+                autoClickerLevel = 0;
+                powerUpLevel = 0;
+                // перезапускаем интервал (останавливаем)
+                if (autoInterval) {
+                    clearInterval(autoInterval);
+                    autoInterval = null;
+                }
+                updateUI();
+                restartAutoClicker();  // т.к. уровень 0, ничего не запустит
+                showFloatingText(`🔄 Игра сброшена`, resetGameBtn, '#ffbf8f');
+                // добавим лёгкую анимацию
+            }
+        }
+        
+        // Загрузка рекорда из localStorage
+        function loadBestScore() {
+            const saved = localStorage.getItem('hamsterBestScore');
+            if (saved !== null && !isNaN(parseInt(saved))) {
+                bestScore = parseInt(saved);
+                bestDisplay.innerText = bestScore;
+            } else {
+                bestScore = 0;
+                bestDisplay.innerText = '0';
+            }
+        }
+        
+        // Сохранять рекорд при каждом обновлении (updateUI уже сохраняет, но убедимся)
+        function saveBestOnScoreChange() {
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('hamsterBestScore', bestScore);
+            }
+        }
+        
+        // обёртка над updateUI + автосохранение рекорда
+        function fullRefresh() {
+            updateUI();
+            saveBestOnScoreChange();
+        }
+        
+        // назначение событий
+        function bindEvents() {
+            hamsterZone.addEventListener('click', (e) => {
+                onHamsterClick(e);
+                fullRefresh();
+            });
+            autoClickerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                buyAutoClicker();
+                fullRefresh();
+            });
+            powerUpBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                buyPowerUp();
+                fullRefresh();
+            });
+            resetGameBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetGame();
+                fullRefresh();
+            });
+        }
+        
+        // инициализация игры
+        function init() {
+            loadBestScore();
+            score = 0;
+            autoClickerLevel = 0;
+            powerUpLevel = 0;
+            if (autoInterval) clearInterval(autoInterval);
+            autoInterval = null;
+            updateUI();
+            restartAutoClicker(); // уровень 0 -> нет интервала
+            bindEvents();
+            // добавим тактильный отклик там где возможно (vibro, если нужно)
+            // но не обязательно
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
