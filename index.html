@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Хомяк-Кликер | Тапай на хомяка!</title>
+    <title>Хомяк-Кликер — с сохранением прогресса</title>
     <style>
         * {
             user-select: none;
@@ -99,7 +99,7 @@
             box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3), inset 0 -4px 0 #5a3412;
         }
 
-        /* мордочка хомяка (SVG-эмодзи + стили) */
+        /* мордочка хомяка */
         .hamster-face {
             font-size: 110px;
             filter: drop-shadow(2px 6px 6px rgba(0,0,0,0.3));
@@ -195,7 +195,7 @@
             }
         }
 
-        /* анимация вибрации при клике (лёгкая) */
+        /* анимация вибрации при клике */
         @keyframes tinyShake {
             0% { transform: translate(0,0);}
             25% { transform: translate(1px, -1px);}
@@ -212,6 +212,16 @@
             color: #4d351b;
             margin-top: 15px;
             opacity: 0.7;
+        }
+        
+        .save-badge {
+            background: #4f3a28;
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 40px;
+            color: #ffeaac;
+            margin-top: 8px;
         }
 
         @media (max-width: 480px) {
@@ -269,26 +279,30 @@
         <div style="font-size: 0.75rem; margin-top: 12px; color:#61482e;">
             💡 Тапай на хомяка → +<span id="clickPowerDisplay">1</span> очко
         </div>
+        <div class="save-badge">💾 Всё сохраняется автоматически</div>
     </div>
     <footer>🐹 Чем больше кликаешь, тем быстрее прогресс!</footer>
 </div>
 
 <script>
     (function(){
+        // ---------- Ключи для localStorage ----------
+        const STORAGE_KEYS = {
+            SCORE: 'hamsterScore',
+            AUTO_LEVEL: 'hamsterAutoLevel',
+            POWER_LEVEL: 'hamsterPowerLevel',
+            BEST_SCORE: 'hamsterBestScore'
+        };
+        
         // ---------- Игровые данные ----------
         let score = 0;                  // текущие очки
         let bestScore = 0;             // рекорд
-        let clickPower = 1;            // сила одного клика
-        let autoClickerLevel = 0;      // уровень автокликера (кол-во срабатываний в секунду)
-        let powerUpLevel = 0;          // уровень улучшения силы клика (базовый счёт + доп.бонус)
+        let autoClickerLevel = 0;      // уровень автокликера
+        let powerUpLevel = 0;          // уровень улучшения силы клика
         
-        // Цены на улучшения (базовые)
-        let baseAutoCost = 50;
-        let basePowerCost = 30;
-        
-        // Текущие цены (пересчитываются от уровня)
-        let currentAutoCost = baseAutoCost;
-        let currentPowerCost = basePowerCost;
+        // Цены на улучшения (базовые, но будут пересчитываться динамически)
+        let currentAutoCost = 50;
+        let currentPowerCost = 30;
         
         // Интервал для авто-кликера
         let autoInterval = null;
@@ -306,36 +320,99 @@
         const powerCostSpan = document.getElementById('powerCost');
         const clickPowerDisplay = document.getElementById('clickPowerDisplay');
         
-        // вспомогательная функция обновления UI (счёт, цены, кнопки)
-        function updateUI() {
-            // отображаем счёт
-            scoreDisplay.innerText = Math.floor(score);
-            // рекорд
+        // ---------- Функции сохранения и загрузки ----------
+        function saveGameToLocal() {
+            // Сохраняем текущие очки, уровни (целые числа)
+            localStorage.setItem(STORAGE_KEYS.SCORE, Math.floor(score));
+            localStorage.setItem(STORAGE_KEYS.AUTO_LEVEL, autoClickerLevel);
+            localStorage.setItem(STORAGE_KEYS.POWER_LEVEL, powerUpLevel);
+            // Рекорд сохраняется отдельно при его обновлении (но продублируем на всякий)
             if (score > bestScore) {
                 bestScore = score;
-                localStorage.setItem('hamsterBestScore', bestScore);
-                bestDisplay.innerText = Math.floor(bestScore);
+                localStorage.setItem(STORAGE_KEYS.BEST_SCORE, Math.floor(bestScore));
             } else {
-                bestDisplay.innerText = Math.floor(bestScore);
+                // Всё равно сохраняем текущий лучший
+                localStorage.setItem(STORAGE_KEYS.BEST_SCORE, Math.floor(bestScore));
+            }
+        }
+        
+        function loadGameFromLocal() {
+            // Загружаем очки
+            const savedScore = localStorage.getItem(STORAGE_KEYS.SCORE);
+            if (savedScore !== null && !isNaN(parseInt(savedScore))) {
+                score = parseInt(savedScore);
+            } else {
+                score = 0;
             }
             
-            // сила клика (базовый 1 + бонус от уровня силы)
+            // Загружаем уровень автокликера
+            const savedAuto = localStorage.getItem(STORAGE_KEYS.AUTO_LEVEL);
+            if (savedAuto !== null && !isNaN(parseInt(savedAuto))) {
+                autoClickerLevel = parseInt(savedAuto);
+            } else {
+                autoClickerLevel = 0;
+            }
+            
+            // Загружаем уровень силы клика
+            const savedPower = localStorage.getItem(STORAGE_KEYS.POWER_LEVEL);
+            if (savedPower !== null && !isNaN(parseInt(savedPower))) {
+                powerUpLevel = parseInt(savedPower);
+            } else {
+                powerUpLevel = 0;
+            }
+            
+            // Загружаем рекорд
+            const savedBest = localStorage.getItem(STORAGE_KEYS.BEST_SCORE);
+            if (savedBest !== null && !isNaN(parseInt(savedBest))) {
+                bestScore = parseInt(savedBest);
+            } else {
+                bestScore = 0;
+            }
+            
+            // Небольшая валидация: если очки отрицательные или NaN
+            if (isNaN(score) || score < 0) score = 0;
+            if (isNaN(autoClickerLevel) || autoClickerLevel < 0) autoClickerLevel = 0;
+            if (isNaN(powerUpLevel) || powerUpLevel < 0) powerUpLevel = 0;
+            if (isNaN(bestScore) || bestScore < 0) bestScore = 0;
+        }
+        
+        // Функция пересчёта цен (зависит от уровней)
+        function updateCosts() {
+            // Авто-кликер: цена растёт, но ограничим 350, чтобы не было бесконечно дорого
+            let autoCostCalculated = Math.min(380, 50 + autoClickerLevel * 18);
+            currentAutoCost = autoCostCalculated;
+            autoCostSpan.innerText = currentAutoCost;
+            
+            // Сила клика: цена базовая 30 + уровень*12, макс 280
+            let powerCostCalculated = Math.min(280, 30 + powerUpLevel * 12);
+            currentPowerCost = powerCostCalculated;
+            powerCostSpan.innerText = currentPowerCost;
+        }
+        
+        // Обновить интерфейс: счёт, рекорд, кнопки, отображение силы клика
+        function updateUI() {
+            // Отображаем текущие очки (целые)
+            scoreDisplay.innerText = Math.floor(score);
+            
+            // Обновляем рекорд: если текущий счёт больше сохранённого, обновляем
+            if (score > bestScore) {
+                bestScore = Math.floor(score);
+                localStorage.setItem(STORAGE_KEYS.BEST_SCORE, bestScore);
+            }
+            bestDisplay.innerText = Math.floor(bestScore);
+            
+            // Сила клика = 1 (базовая) + бонус от уровня
             let totalClickPower = 1 + powerUpLevel;
             clickPowerDisplay.innerText = totalClickPower;
             
-            // авто-кликер уровень + цена (растёт линейно: цена = база + уровень*15, но не выше 300, чтобы игра не уходила в бесконечность)
-            let autoCostCalculated = Math.min(300, baseAutoCost + autoClickerLevel * 18);
-            currentAutoCost = autoCostCalculated;
-            autoCostSpan.innerText = currentAutoCost;
+            // Отображаем уровни
             autoLevelSpan.innerText = autoClickerLevel;
-            
-            // сила клика цена: база + уровень*12, не выше 250
-            let powerCostCalculated = Math.min(250, basePowerCost + powerUpLevel * 12);
-            currentPowerCost = powerCostCalculated;
-            powerCostSpan.innerText = currentPowerCost;
             powerLevelSpan.innerText = powerUpLevel;
             
-            // управление состоянием кнопок (если недостаточно очков - disabled стиль)
+            // Пересчитываем цены (зависит от текущих уровней)
+            updateCosts();
+            
+            // Блокируем кнопки если не хватает очков
             if (score < currentAutoCost) {
                 autoClickerBtn.classList.add('disabled');
             } else {
@@ -349,42 +426,54 @@
             }
         }
         
-        // перезапуск интервала авто-кликера (при изменении уровня)
+        // Перезапуск интервала автокликера (при изменении уровня)
         function restartAutoClicker() {
             if (autoInterval) {
                 clearInterval(autoInterval);
                 autoInterval = null;
             }
             if (autoClickerLevel > 0) {
-                // интервал = 1 секунда, за каждую секунду начисляем очки = autoClickerLevel (каждый уровень даёт 1 доп очко в сек)
+                // Каждый уровень автокликера даёт +autoClickerLevel очков каждую секунду
                 autoInterval = setInterval(() => {
-                    if (autoClickerLevel > 0) {
-                        let autoGain = autoClickerLevel;   // каждый уровень авто-кликера даёт +1 очко в секунду
-                        addScore(autoGain, false);  // авто-начисление, без анимации от хомяка? но добавим лёгкий эффект? сделаем с фантомным "авто"
+                    if (autoClickerLevel > 0 && !isNaN(autoClickerLevel)) {
+                        let autoGain = autoClickerLevel;
+                        addScore(autoGain, false, null, true);
+                        // Показываем всплывающее уведомление об автодобыче
                         showFloatingText(`🤖 +${autoGain}`, hamsterZone, '#b3ffa7');
+                        // Сохраняем состояние после авто-начисления
+                        saveGameToLocal();
                     }
                 }, 1000);
             }
         }
         
-        // Функция добавления очков (withAnim - откуда вызов: от клика или нет)
-        // fromClick - чтобы показывать анимацию "+сила" от хомяка
-        function addScore(amount, fromClick = true, sourceElement = null) {
-            let prevScore = score;
+        // Основная функция добавления очков
+        // fromClick: true если вызвано кликом по хомяку, false если автокликер или бонус
+        // sourceElement: откуда появится парящая цифра
+        // isAuto: флаг для особой анимации
+        function addScore(amount, fromClick = true, sourceElement = null, isAuto = false) {
+            if (amount <= 0) return;
             score += amount;
-            if (score < 0) score = 0; // страховка
+            // если счёт стал сумасшедшим, ограничивать не будем, но сохраним целым
+            score = Math.floor(score);
+            
+            // Обновляем UI
             updateUI();
             
-            // если от клика, показываем парящую цифру в месте клика
-            if (fromClick && amount > 0 && sourceElement) {
+            // Сохраняем прогресс после каждого изменения очков!
+            saveGameToLocal();
+            
+            // Анимация + очки
+            if (fromClick && sourceElement) {
                 showFloatingText(`+${amount}`, sourceElement, '#ffd966');
-            } else if (!fromClick && amount > 0) {
-                // для авто-кликера показываем в районе хомяка небольшое оповещение
-                if (hamsterZone) showFloatingText(`⚙️ +${amount}`, hamsterZone, '#c7f0b2');
+            } else if (isAuto && hamsterZone) {
+                // для авто - уже сделали отдельный вызов
+            } else if (!fromClick && !isAuto && sourceElement) {
+                showFloatingText(`✨ +${amount}`, sourceElement, '#ffd29b');
             }
         }
         
-        // Эффект парящих чисел
+        // Парящие числа (красиво)
         function showFloatingText(text, originElement, colorHint = '#ffec5e') {
             if (!originElement) return;
             const rect = originElement.getBoundingClientRect();
@@ -404,7 +493,7 @@
             }, 700);
         }
         
-        // эффект встряски для хомяка при клике
+        // Эффект при клике на хомяка (встряска + смена эмодзи)
         function addHamsterClickEffect() {
             const hamsterDiv = document.querySelector('.hamster');
             if (hamsterDiv) {
@@ -413,7 +502,6 @@
                     hamsterDiv.classList.remove('click-effect');
                 }, 100);
             }
-            // быстро меняем эмодзи на довольного / удивлённого на 150 мс
             const faceSpan = document.getElementById('hamsterFace');
             if (faceSpan) {
                 const original = faceSpan.innerText;
@@ -426,128 +514,111 @@
         
         // Обработчик клика по хомяку
         function onHamsterClick(event) {
-            // общая сила клика = 1 + powerUpLevel
-            const clickValue = 1 + powerUpLevel;
-            addScore(clickValue, true, hamsterZone);
+            const clickValue = 1 + powerUpLevel;   // базовая сила + апгрейд
+            addScore(clickValue, true, hamsterZone, false);
             addHamsterClickEffect();
-            // дополнительная "пульсация" на точке клика
-            if (event && event.clientX) {
-                // можно не делать, но круто
-            }
+            // Дополнительно сохраняем (addScore уже сохраняет)
         }
         
-        // покупка авто-кликера (увеличить уровень)
+        // Покупка авто-кликера
         function buyAutoClicker() {
             if (score >= currentAutoCost) {
                 score -= currentAutoCost;
+                score = Math.floor(score);
                 autoClickerLevel++;
-                // после изменения уровня перезапускаем интервал
+                // Перезапускаем интервал с новым уровнем
                 restartAutoClicker();
                 updateUI();
-                // анимация покупки
+                saveGameToLocal();
                 showFloatingText(`🚀 Авто-кликер lvl ${autoClickerLevel}`, autoClickerBtn, '#ffbc6e');
             } else {
-                showFloatingText(`🧀 Не хватает очков!`, autoClickerBtn, '#ffaa88');
+                showFloatingText(`🧀 Не хватает очков! (нужно ${currentAutoCost})`, autoClickerBtn, '#ffaa88');
             }
         }
         
-        // покупка силы клика
+        // Покупка улучшения силы клика
         function buyPowerUp() {
             if (score >= currentPowerCost) {
                 score -= currentPowerCost;
+                score = Math.floor(score);
                 powerUpLevel++;
                 updateUI();
-                showFloatingText(`💢 Сила клика +1!`, powerUpBtn, '#ffb347');
+                saveGameToLocal();
+                showFloatingText(`💪 Сила клика +1! Теперь +${1 + powerUpLevel} за удар`, powerUpBtn, '#ffb347');
             } else {
-                showFloatingText(`🧀 Нужно больше очков`, powerUpBtn, '#ffaa88');
+                showFloatingText(`🧀 Нужно больше очков (${currentPowerCost})`, powerUpBtn, '#ffaa88');
             }
         }
         
-        // полный сброс игры (сохраняя лучший рекорд? сброс всего прогресса кроме рекорда по желанию)
-        // но по логике: сбросить счёт, уровни, пересоздать игру
+        // Сброс игры (с сохранением рекорда? да, рекорд остаётся)
         function resetGame() {
-            if (confirm('Сбросить весь прогресс? Ваши очки и улучшения обнулятся, но рекорд останется.')) {
-                score = 0;
-                autoClickerLevel = 0;
-                powerUpLevel = 0;
-                // перезапускаем интервал (останавливаем)
+            if (confirm('⚠️ Сбросить ВСЁ, кроме рекорда? Все очки, авто-кликер и сила клика обнулятся.')) {
+                // Останавливаем авто-кликер
                 if (autoInterval) {
                     clearInterval(autoInterval);
                     autoInterval = null;
                 }
+                // Сбрасываем переменные
+                score = 0;
+                autoClickerLevel = 0;
+                powerUpLevel = 0;
+                // Рекорд НЕ трогаем, оставляем лучший результат в localStorage и в памяти
                 updateUI();
-                restartAutoClicker();  // т.к. уровень 0, ничего не запустит
-                showFloatingText(`🔄 Игра сброшена`, resetGameBtn, '#ffbf8f');
-                // добавим лёгкую анимацию
+                restartAutoClicker(); // уровень 0 -> интервал не запустится
+                saveGameToLocal();    // перезаписываем сохранения (score=0, уровни 0)
+                showFloatingText(`🌀 Игра сброшена. Рекорд сохранён!`, resetGameBtn, '#ffbf8f');
+                // Дополнительно: обновим счёт на экране
+                scoreDisplay.innerText = "0";
             }
         }
         
-        // Загрузка рекорда из localStorage
-        function loadBestScore() {
-            const saved = localStorage.getItem('hamsterBestScore');
-            if (saved !== null && !isNaN(parseInt(saved))) {
-                bestScore = parseInt(saved);
-                bestDisplay.innerText = bestScore;
-            } else {
-                bestScore = 0;
-                bestDisplay.innerText = '0';
-            }
+        // Полное сохранение перед закрытием страницы
+        function handleBeforeUnload() {
+            saveGameToLocal();
         }
         
-        // Сохранять рекорд при каждом обновлении (updateUI уже сохраняет, но убедимся)
-        function saveBestOnScoreChange() {
+        // Инициализация игры: загружаем данные, настраиваем интервал, события
+        function init() {
+            loadGameFromLocal();     // загружаем score, autoLevel, powerLevel, bestScore из localStorage
+            // Убедимся, что если рекорд меньше текущего счёта - обновим
             if (score > bestScore) {
                 bestScore = score;
-                localStorage.setItem('hamsterBestScore', bestScore);
+                localStorage.setItem(STORAGE_KEYS.BEST_SCORE, bestScore);
             }
-        }
-        
-        // обёртка над updateUI + автосохранение рекорда
-        function fullRefresh() {
+            // Первичный рендер UI
             updateUI();
-            saveBestOnScoreChange();
-        }
-        
-        // назначение событий
-        function bindEvents() {
+            // Запускаем авто-кликер, если есть уровень
+            restartAutoClicker();
+            // Привязываем события
             hamsterZone.addEventListener('click', (e) => {
+                e.stopPropagation();
                 onHamsterClick(e);
-                fullRefresh();
             });
             autoClickerBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 buyAutoClicker();
-                fullRefresh();
             });
             powerUpBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 buyPowerUp();
-                fullRefresh();
             });
             resetGameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 resetGame();
-                fullRefresh();
+            });
+            // Сохраняем игру при закрытии вкладки / перезагрузке
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            // Также сохраняем при скрытии страницы (для мобильных)
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    saveGameToLocal();
+                }
             });
         }
         
-        // инициализация игры
-        function init() {
-            loadBestScore();
-            score = 0;
-            autoClickerLevel = 0;
-            powerUpLevel = 0;
-            if (autoInterval) clearInterval(autoInterval);
-            autoInterval = null;
-            updateUI();
-            restartAutoClicker(); // уровень 0 -> нет интервала
-            bindEvents();
-            // добавим тактильный отклик там где возможно (vibro, если нужно)
-            // но не обязательно
-        }
-        
+        // Запускаем игру
         init();
     })();
 </script>
 </body>
-</html>
+</>
